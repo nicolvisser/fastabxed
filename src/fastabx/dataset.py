@@ -60,7 +60,7 @@ class InMemoryAccessor(DataAccessor):
     """Data accessor where everything is in memory."""
 
     def __init__(self, indices: dict[int, tuple[int, int]], data: torch.Tensor) -> None:
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.device = torch.device("cpu")
         self.indices = indices
         verify_empty_datapoints(self.indices)
         self.data = data.to(self.device)
@@ -175,7 +175,7 @@ def load_data_from_item[T](
     by_file_lazy = lazy.select("#file", "start", "end").group_by("#file", maintain_order=True).agg("start", "end")
     indices, by_file = pl.collect_all([indices_lazy, by_file_lazy])
 
-    data, device = [], torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    data, device = [], torch.device("cpu")
     for fileid, start_indices, end_indices in tqdm(by_file.iter_rows(), desc="Building dataset", total=len(by_file)):
         features = feature_maker(mapping[fileid]).detach().to(device)
         for start, end in zip(start_indices, end_indices, strict=True):
@@ -211,7 +211,7 @@ def load_data_from_item_with_times(
         .group_by("#file", maintain_order=True)
         .agg("index", "onset", "offset")
     )
-    data, device, all_indices, right = [], torch.device("cuda" if torch.cuda.is_available() else "cpu"), {}, 0
+    data, device, all_indices, right = [], torch.device("cpu"), {}, 0
     decimals = by_file["onset"].dtype.inner.scale  # type: ignore[attr-defined]
     for fileid, indices, onsets, offsets in tqdm(by_file.iter_rows(), desc="Building dataset", total=len(by_file)):
         features = torch.load(paths_features[fileid], map_location=device).detach()

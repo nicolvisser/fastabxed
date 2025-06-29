@@ -7,7 +7,6 @@ from typing import Literal
 import torch
 
 from fastabx.dataset import Dataset
-from fastabx.distance import DistanceName
 from fastabx.score import Score
 from fastabx.subsample import Subsampler
 from fastabx.task import Task
@@ -23,7 +22,6 @@ def zerospeech_abx(
     *,
     speaker: Literal["within", "across"] = "within",
     context: Literal["within", "any"] = "within",
-    distance: DistanceName = "angular",
     frequency: int = 50,
     feature_maker: Callable[[str | Path], torch.Tensor] = torch.load,
     max_size_group: int | None = 10,
@@ -40,7 +38,6 @@ def zerospeech_abx(
     :param root: the root directory containing either the features or the audio files
     :param speaker: the speaker mode, either "within" or "across"
     :param context: the context mode, either "within" or "any"
-    :param distance: the distance metric, "angular" (same as "cosine"), "euclidean", "kl_symmetric" or "identical"
     :param frequency: the feature frequency of the features / the output of the feature maker, in Hz. Default is 50 Hz
     :param feature_maker: the feature maker. Defaults to just loading the file with ``torch.load``
     :param max_size_group: maximum number of instances of A, B, or X in each :py:class:`.Cell`. Default is 10.
@@ -67,4 +64,4 @@ def zerospeech_abx(
     subsampler = Subsampler(max_size_group, max_x_across, seed)
     task = Task(dataset, on="#phone", by=by, across=across, subsampler=subsampler)
     levels = ([("next-phone", "prev-phone")] if context == "within" else []) + ["speaker"]
-    return Score(task, distance).collapse(levels=levels)
+    return Score(task).collapse(levels=levels)

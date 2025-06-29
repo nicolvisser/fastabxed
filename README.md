@@ -1,31 +1,53 @@
-# Fast ABX evaluation
+# Fast ABX evaluation (with edit distance)
 
-**fastabx** is a Python package for efficient computation of ABX discriminability.
+This repo, is a fork of [fastabx](https://github.com/bootphon/fastabx) - a Python package for efficient computation of ABX discriminability.
 
-The ABX discriminability measures how well categories of interest are separated in the representation space by
-determining whether tokens from the same category are closer to each other than to those from a different category.
-While ABX has been mostly used to evaluate speech representations, it is a generic framework that can be applied
-to other domains of representation learning.
+Instead of evaluating with dynamic time warping (DTW) on vector sequences we evaluate with the normalized edit distance (ED) on discrete sequences.
+We also remove consecutive duplicate IDs from the sequences corresponding to the phone segments before the ED computation.
 
-This package provides a simple interface that can be adapted to any ABX conditions, and to any input modality.
-
-Check out the documentation for more information: https://docs.cognitive-ml.fr/fastabx
+Concretely, comparing a phone segment with ID sequence `[6, 6, 6, 1, 1, 7, 7]` to one with `[6, 6, 7, 7, 7]` is the same as comparing `[6, 1, 7]` to `[6, 7]`. It gives an ED of `1` (a single insertion) and therefore a normalized ED of `1/max(3,2)` = `0.3333`.
 
 ## Install
 
-Install the pre-built package in your environment:
+Build and install the package in your environment:
 
 ```bash
-pip install fastabx
+git clone https://github.com/nicolvisser/fastabxed
+cd fastabxed
+pip install -e .
 ```
 
 It requires Python 3.12 or later and the default PyTorch version on PyPI (2.7.1, CUDA 12.6 variant for Linux, CPU variant for Windows and macOS).
-Wheels compatible with other versions and variants of PyTorch are available on the GitHub Releases page.
+
+## Usage
+
+```py
+import torch
+import numpy as np
+
+from fastabx import zerospeech_abx
+
+def feature_maker(path: str):
+    return torch.from_numpy(np.load(path)) # long tensor shape (N,) with discrete IDs
+
+result = zerospeech_abx(
+    item="path/to/item/file/phoneme-dev-clean.item",
+    root="path/to/units/for/LibriSpeech/dev-clean",
+    speaker="within",
+    context="any",
+    frequency=50,
+    feature_maker=feature_maker,
+    extension=".npy",
+)
+
+print(result)
+```
 
 ## Citation
 
-A preprint is available on arXiv: https://arxiv.org/abs/2505.02692 \
-If you use fastabx in your work, please cite it:
+If you use this fork in your work, please consider citing the original work on [fastabx](https://github.com/bootphon/fastabx):
+
+Their preprint is available on arXiv: https://arxiv.org/abs/2505.02692
 
 ```bibtex
 @misc{fastabx,

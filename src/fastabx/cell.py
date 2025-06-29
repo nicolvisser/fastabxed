@@ -32,11 +32,6 @@ class Cell:
         nx = self.a.data.size(0) - 1 if self.is_symmetric else self.x.data.size(0)
         return self.a.data.size(0) * self.b.data.size(0) * nx
 
-    @property
-    def use_dtw(self) -> bool:
-        """Whether or not to use the DTW when computing the distances for this cell."""
-        return not (1 == self.a.data.size(1) == self.b.data.size(1) == self.x.data.size(1))
-
     def __len__(self) -> int:
         return self.num_triplets
 

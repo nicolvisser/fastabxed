@@ -21,18 +21,13 @@ def get_openmp_flags() -> tuple[list[str], list[str]]:
 
 def get_extension() -> Extension:
     """Either CUDA or CPU extension."""
-    use_cuda = CUDA_HOME is not None
-    extension = CUDAExtension if use_cuda else CppExtension
     openmp_flags = get_openmp_flags()
     extra_compile_args = {
         "cxx": ["-fdiagnostics-color=always", "-DPy_LIMITED_API=0x030C0000", "-O3"] + openmp_flags[0],
         "nvcc": ["-O3"],
     }
-    sources = ["src/fastabx/csrc/dtw.cpp"]
-    if use_cuda:
-        os.environ["TORCH_CUDA_ARCH_LIST"] = "Volta;Turing;Ampere;Ada;Hopper"
-        sources.append("src/fastabx/csrc/cuda/dtw.cu")
-    return extension(
+    sources = ["src/fastabx/csrc/ed.cpp"]
+    return CppExtension(
         "fastabx._C",
         sources,
         extra_compile_args=extra_compile_args,

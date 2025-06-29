@@ -7,7 +7,7 @@ import polars as pl
 import polars.selectors as cs
 from tqdm import tqdm
 
-from fastabx.distance import DistanceName, abx_on_cell, distance_function
+from fastabx.distance import abx_on_cell
 from fastabx.task import Task
 from fastabx.verify import format_score_levels, verify_score_levels
 
@@ -51,16 +51,12 @@ def score_details(cells: pl.DataFrame, *, levels: Sequence[tuple[str, ...] | str
 
 
 class Score:
-    """Compute the score of a :py:class:`.Task` using a given distance specified by ``distance_name``."""
+    """Compute the score of a :py:class:`.Task`."""
 
-    def __init__(self, task: Task, distance_name: DistanceName) -> None:
+    def __init__(self, task: Task) -> None:
         scores, sizes = [], []
-        self.distance_name = distance_name
-        distance = distance_function(distance_name)
-        if distance_name in ("cosine", "angular"):
-            task.dataset.normalize_()
         for cell in tqdm(task, "Scoring each cell", disable=len(task) < MIN_CELLS_FOR_TQDM):
-            scores.append(abx_on_cell(cell, distance).item())
+            scores.append(abx_on_cell(cell).item())
             sizes.append(len(cell))
         self._cells = task.cells.select(cs.exclude("description", "header")).with_columns(
             score=pl.Series(scores, dtype=pl.Float32), size=pl.Series(sizes)
@@ -77,7 +73,7 @@ class Score:
         raise AttributeError(msg)
 
     def __repr__(self) -> str:
-        return f"Score({len(self.cells)} cells, {self.distance_name} distance)"
+        return f"Score({len(self.cells)} cells"
 
     def write_csv(self, file: str | Path) -> None:
         """Write the results of all the cells to a CSV file."""

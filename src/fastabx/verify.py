@@ -7,7 +7,7 @@ from itertools import chain
 import polars as pl
 from torch import Tensor
 
-NDIM = 3
+NDIM = 2
 INVALID_COLUMN_SUFFIX = ("_a", "_b", "_x")
 INVALID_COLUMN_NAMES = {"index", "score", "size", "__group", "__lookup"}
 
@@ -102,9 +102,7 @@ class InvalidCellError(ValueError):
     def __init__(self, error_type: CellErrorType) -> None:
         match error_type:
             case CellErrorType.NDIM:
-                msg = "A, B, and X should be tensors with 3 dimensions"
-            case CellErrorType.FEATURE_DIM:
-                msg = "A, B, and X should have the same feature dimension"
+                msg = "A, B, and X should be tensors with 2 dimensions"
             case CellErrorType.SIZE:
                 msg = "Invalid size specification"
             case _:
@@ -117,8 +115,6 @@ def verify_cell(a_sa: tuple[Tensor, Tensor], b_sb: tuple[Tensor, Tensor], x_sx: 
     (a, sa), (b, sb), (x, sx) = a_sa, b_sb, x_sx
     if not a.ndim == b.ndim == x.ndim == NDIM:
         raise InvalidCellError(CellErrorType.NDIM)
-    if not a.size(2) == b.size(2) == x.size(2):
-        raise InvalidCellError(CellErrorType.FEATURE_DIM)
     if not (a.size(0) == sa.size(0) and b.size(0) == sb.size(0) and x.size(0) == sx.size(0)):
         raise InvalidCellError(CellErrorType.SIZE)
 
